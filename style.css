@@ -1,0 +1,419 @@
+/* ============================================================
+   Fahrplanauskunft – Main Stylesheet (Material Design 2)
+   ============================================================ */
+
+:root {
+  --primary: #1565C0;
+  --primary-dark: #003c8f;
+  --primary-light: #5e92f3;
+  --on-primary: #ffffff;
+  --surface: #ffffff;
+  --background: #f5f5f5;
+  --on-surface: #212121;
+  --secondary: #00796B;
+  --error: #B00020;
+  --delay-color: #E65100;
+  --radius: 8px;
+  --shadow: 0 2px 6px rgba(0,0,0,.18);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: var(--background);
+  color: var(--on-surface);
+  min-height: 100vh;
+}
+
+/* ---- Top App Bar ---- */
+.mdc-top-app-bar {
+  background: var(--primary);
+  color: var(--on-primary);
+  display: flex;
+  align-items: center;
+  height: 56px;
+  padding: 0 16px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.mdc-top-app-bar__row {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.mdc-top-app-bar__section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mdc-top-app-bar__section--align-end { margin-left: auto; }
+.mdc-top-app-bar__title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: .0125em;
+}
+.mdc-top-app-bar__navigation-icon,
+.mdc-icon-button {
+  color: var(--on-primary);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 24px;
+  padding: 6px;
+  border-radius: 50%;
+  transition: background .2s;
+}
+.mdc-icon-button:hover { background: rgba(255,255,255,.15); }
+
+/* ---- Main Content ---- */
+.main-content {
+  max-width: 680px;
+  margin: 24px auto;
+  padding: 0 16px 80px;
+}
+
+.section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.section h2 {
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: var(--primary);
+}
+.hidden { display: none !important; }
+
+/* ---- Text Fields (MDC-like outlined) ---- */
+.search-field-wrap {
+  position: relative;
+  margin-bottom: 16px;
+}
+.mdc-text-field--outlined {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  position: relative;
+}
+.mdc-text-field__input {
+  width: 100%;
+  border: 1.5px solid #9e9e9e;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 1rem;
+  font-family: 'Roboto', sans-serif;
+  background: transparent;
+  outline: none;
+  transition: border-color .2s;
+  color: var(--on-surface);
+}
+.mdc-text-field__input:focus { border-color: var(--primary); }
+.mdc-floating-label {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1rem;
+  color: #757575;
+  pointer-events: none;
+  transition: all .15s;
+  background: var(--surface);
+  padding: 0 4px;
+}
+.mdc-text-field__input:focus ~ .mdc-floating-label,
+.mdc-text-field__input:not(:placeholder-shown) ~ .mdc-floating-label,
+.mdc-text-field--labeled .mdc-floating-label {
+  top: 0;
+  font-size: .75rem;
+  color: var(--primary);
+}
+/* datetime-local fix */
+input[type="datetime-local"] { color: var(--on-surface); }
+
+/* ---- Autocomplete ---- */
+.autocomplete-list {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 0;
+  right: 0;
+  background: var(--surface);
+  border: 1px solid #e0e0e0;
+  border-radius: 0 0 var(--radius) var(--radius);
+  list-style: none;
+  z-index: 200;
+  max-height: 220px;
+  overflow-y: auto;
+  box-shadow: 0 4px 10px rgba(0,0,0,.12);
+}
+.autocomplete-list:empty { display: none; }
+.autocomplete-list li {
+  padding: 10px 16px;
+  cursor: pointer;
+  font-size: .95rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background .15s;
+}
+.autocomplete-list li:hover { background: #e3f2fd; }
+.autocomplete-list li .local-badge {
+  font-size: .7rem;
+  background: var(--primary-light);
+  color: var(--on-primary);
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+/* ---- Buttons ---- */
+.mdc-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: .875rem;
+  font-weight: 500;
+  letter-spacing: .08929em;
+  padding: 0 16px;
+  height: 36px;
+  text-transform: uppercase;
+  transition: background .2s, box-shadow .2s;
+  background: transparent;
+  color: var(--primary);
+}
+.mdc-button--raised {
+  background: var(--primary);
+  color: var(--on-primary);
+  box-shadow: var(--shadow);
+}
+.mdc-button--raised:hover { background: var(--primary-dark); }
+.mdc-button--outlined {
+  border: 1.5px solid var(--primary);
+  color: var(--primary);
+}
+#btn-search { margin-top: 8px; }
+
+/* ---- Result Cards ---- */
+.result-card {
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,.1);
+  background: var(--surface);
+}
+.result-card__header {
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.result-card__line {
+  font-weight: 700;
+  font-size: 1.1rem;
+  background: rgba(255,255,255,.2);
+  padding: 2px 10px;
+  border-radius: 4px;
+}
+.result-card__dest { font-size: 1rem; font-weight: 500; }
+.result-card__body { padding: 12px 16px; }
+.result-card__stat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  font-size: .9rem;
+}
+.result-card__stat .material-icons { font-size: 18px; color: #757575; }
+.result-card__actions {
+  padding: 8px 16px 12px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Perlschnur (leg timeline) */
+.leg-timeline {
+  margin: 8px 0 12px 0;
+  padding: 0;
+  list-style: none;
+  position: relative;
+}
+.leg-timeline::before {
+  content: '';
+  position: absolute;
+  left: 14px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: #bdbdbd;
+}
+.leg-timeline li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 14px;
+  position: relative;
+}
+.leg-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+  margin-top: 3px;
+  z-index: 1;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+.leg-dot.walk { background: var(--secondary); box-shadow: 0 0 0 2px var(--secondary); }
+.leg-info { flex: 1; }
+.leg-info .leg-name { font-weight: 500; font-size: .9rem; }
+.leg-info .leg-detail { font-size: .8rem; color: #757575; }
+.delay { color: var(--delay-color) !important; }
+
+/* ---- Saved Trips ---- */
+.saved-card {
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius);
+  margin-bottom: 12px;
+  background: var(--surface);
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.saved-card .material-icons { color: var(--primary); }
+.saved-card__info { flex: 1; }
+.saved-card__name { font-weight: 500; font-size: .95rem; }
+.saved-card__detail { font-size: .8rem; color: #757575; }
+.saved-card__actions { display: flex; gap: 4px; }
+.saved-card__actions button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #757575;
+  border-radius: 50%;
+  padding: 4px;
+  transition: background .2s, color .2s;
+}
+.saved-card__actions button:hover { background: #e3f2fd; color: var(--primary); }
+
+/* ---- Snackbar ---- */
+.mdc-snackbar {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  z-index: 300;
+  transition: transform .25s ease;
+  min-width: 240px;
+}
+.mdc-snackbar.mdc-snackbar--open { transform: translateX(-50%) translateY(0); }
+.mdc-snackbar__surface {
+  background: #323232;
+  color: #fff;
+  border-radius: 4px;
+  padding: 12px 24px;
+  box-shadow: 0 3px 10px rgba(0,0,0,.25);
+}
+
+/* ---- Dialog ---- */
+.mdc-dialog {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+}
+.mdc-dialog.mdc-dialog--open { display: flex; }
+.mdc-dialog__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+}
+.mdc-dialog__surface {
+  background: var(--surface);
+  border-radius: 8px;
+  min-width: 300px;
+  max-width: 480px;
+  width: 90%;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 8px 30px rgba(0,0,0,.25);
+}
+.mdc-dialog__header { padding: 20px 24px 0; }
+.mdc-dialog__title { font-size: 1.1rem; font-weight: 500; color: var(--primary); }
+.mdc-dialog__content { padding: 16px 24px; }
+.mdc-dialog__actions { padding: 8px 16px 16px; display: flex; justify-content: flex-end; gap: 8px; }
+.dialog-select {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1.5px solid #9e9e9e;
+  border-radius: var(--radius);
+  font-size: .95rem;
+  font-family: 'Roboto', sans-serif;
+  background: var(--surface);
+  color: var(--on-surface);
+}
+.dialog-select:focus { border-color: var(--primary); outline: none; }
+
+/* ---- Trip View Overlay ---- */
+.trip-view {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.trip-view__card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 32px 28px;
+  min-width: 300px;
+  max-width: 480px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0,0,0,.3);
+}
+.trip-view__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  color: var(--primary);
+}
+.trip-view__header .material-icons { font-size: 32px; }
+.trip-view__line {
+  font-size: 1.5rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: var(--on-primary);
+  padding: 2px 12px;
+  border-radius: 6px;
+}
+.trip-view__dest { font-size: 1.15rem; font-weight: 500; color: var(--on-surface); }
+.trip-view__body { margin-bottom: 24px; }
+.trip-view__stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  font-size: 1rem;
+}
+.trip-view__stat .material-icons { color: var(--primary); }
+.trip-view__stat strong { font-size: 1.3rem; }

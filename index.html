@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fahrplanauskunft</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link rel="manifest" href="manifest.json" />
+</head>
+<body class="mdc-typography">
+
+  <!-- TRIP VIEW OVERLAY -->
+  <div id="trip-view" class="trip-view hidden">
+    <div class="trip-view__card">
+      <div class="trip-view__header">
+        <span class="material-icons">directions_transit</span>
+        <span id="tv-line" class="trip-view__line">Linie –</span>
+        <span id="tv-dest" class="trip-view__dest">–</span>
+      </div>
+      <div class="trip-view__body">
+        <div class="trip-view__stat">
+          <span class="material-icons">timer</span>
+          <span>Abfahrt in <strong id="tv-min">–</strong> min</span>
+        </div>
+        <div class="trip-view__stat">
+          <span class="material-icons">platform</span>
+          <span>Gleis / Bussteig <strong id="tv-platform">–</strong></span>
+        </div>
+        <div class="trip-view__stat" id="tv-delay-row" style="display:none">
+          <span class="material-icons delay">warning</span>
+          <span class="delay">Verspätung <strong id="tv-delay">–</strong> min</span>
+        </div>
+      </div>
+      <button class="mdc-button mdc-button--outlined" id="tv-close">
+        <span class="mdc-button__label">Schließen</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- APP SHELL -->
+  <header class="mdc-top-app-bar">
+    <div class="mdc-top-app-bar__row">
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+        <span class="material-icons mdc-top-app-bar__navigation-icon">directions_transit</span>
+        <span class="mdc-top-app-bar__title">Fahrplanauskunft</span>
+      </section>
+      <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
+        <button class="material-icons mdc-icon-button" id="btn-saved" title="Gespeicherte Fahrten">
+          bookmarks
+        </button>
+      </section>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- SEARCH SECTION -->
+    <section id="section-search" class="section">
+      <h2 class="mdc-typography--headline6">Verbindung suchen</h2>
+
+      <div class="search-field-wrap">
+        <label class="mdc-text-field mdc-text-field--outlined" id="field-origin">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+              <span class="mdc-floating-label" id="lbl-origin">Start</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
+          <input type="text" id="input-origin" class="mdc-text-field__input" autocomplete="off" aria-labelledby="lbl-origin" />
+        </label>
+        <ul class="autocomplete-list" id="ac-origin"></ul>
+      </div>
+
+      <div class="search-field-wrap">
+        <label class="mdc-text-field mdc-text-field--outlined" id="field-dest">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+              <span class="mdc-floating-label" id="lbl-dest">Ziel</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
+          <input type="text" id="input-dest" class="mdc-text-field__input" autocomplete="off" aria-labelledby="lbl-dest" />
+        </label>
+        <ul class="autocomplete-list" id="ac-dest"></ul>
+      </div>
+
+      <div class="search-field-wrap">
+        <label class="mdc-text-field mdc-text-field--outlined">
+          <span class="mdc-notched-outline">
+            <span class="mdc-notched-outline__leading"></span>
+            <span class="mdc-notched-outline__notch">
+              <span class="mdc-floating-label" id="lbl-time">Abfahrtszeit</span>
+            </span>
+            <span class="mdc-notched-outline__trailing"></span>
+          </span>
+          <input type="datetime-local" id="input-time" class="mdc-text-field__input" aria-labelledby="lbl-time" />
+        </label>
+      </div>
+
+      <button class="mdc-button mdc-button--raised" id="btn-search">
+        <span class="material-icons mdc-button__icon">search</span>
+        <span class="mdc-button__label">Suchen</span>
+      </button>
+    </section>
+
+    <!-- RESULTS SECTION -->
+    <section id="section-results" class="section hidden">
+      <h2 class="mdc-typography--headline6">Ergebnisse</h2>
+      <div id="results-list"></div>
+    </section>
+
+    <!-- SAVED TRIPS SECTION -->
+    <section id="section-saved" class="section hidden">
+      <h2 class="mdc-typography--headline6">Gespeicherte Fahrten</h2>
+      <div id="saved-list"></div>
+    </section>
+
+  </main>
+
+  <!-- SNACKBAR -->
+  <div class="mdc-snackbar" id="snackbar">
+    <div class="mdc-snackbar__surface" role="status" aria-relevant="additions">
+      <div class="mdc-snackbar__label" id="snackbar-label"></div>
+    </div>
+  </div>
+
+  <!-- SAVE TRIP DIALOG -->
+  <div class="mdc-dialog" id="save-dialog">
+    <div class="mdc-dialog__container">
+      <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true">
+        <div class="mdc-dialog__header">
+          <h2 class="mdc-dialog__title">Fahrt speichern</h2>
+        </div>
+        <div class="mdc-dialog__content">
+          <p id="dialog-trip-summary"></p>
+          <label class="mdc-text-field mdc-text-field--outlined" style="width:100%;margin-top:12px">
+            <span class="mdc-notched-outline">
+              <span class="mdc-notched-outline__leading"></span>
+              <span class="mdc-notched-outline__notch">
+                <span class="mdc-floating-label">Name (optional)</span>
+              </span>
+              <span class="mdc-notched-outline__trailing"></span>
+            </span>
+            <input type="text" id="dialog-name" class="mdc-text-field__input" />
+          </label>
+          <label style="display:block;margin-top:16px;font-size:14px">Wiederholung
+            <select id="dialog-recurrence" class="dialog-select">
+              <option value="none">Keine</option>
+              <option value="daily">Täglich</option>
+              <option value="weekdays">Mo–Fr</option>
+              <option value="weekly">Wöchentlich</option>
+            </select>
+          </label>
+        </div>
+        <div class="mdc-dialog__actions">
+          <button class="mdc-button mdc-dialog__button" id="dialog-cancel">
+            <span class="mdc-button__label">Abbrechen</span>
+          </button>
+          <button class="mdc-button mdc-button--raised mdc-dialog__button" id="dialog-save">
+            <span class="mdc-button__label">Speichern</span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="mdc-dialog__scrim"></div>
+  </div>
+
+  <script src="db.js" type="module"></script>
+  <script src="trias.js" type="module"></script>
+  <script src="app.js" type="module"></script>
+</body>
+</html>
