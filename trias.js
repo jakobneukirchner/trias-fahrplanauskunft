@@ -1,180 +1,183 @@
-// ============================================================
-// trias.js – API helper (build request, send, parse response)
-// ============================================================
-
+// trias.js – API helper
 const TRIAS_URL = 'https://v4-api.efa.de/';
 const REQUESTOR_REF = '0E67FD30-C2C7-48ED-80DD-D088F7395B14';
+const NS = 'http://www.vdv.de/trias';
 
-/**
- * Build Trias TripRequest XML
- * @param {object} p – {originRef, originType, destRef, destType, depIso, results, algorithm}
- */
 export function buildTripRequest(p) {
-  const originTag = p.originType === 'stop'
-    ? `<StopPointRef>${p.originRef}</StopPointRef><LocationName><Text/></LocationName>`
-    : `<AddressRef>${escXml(p.originRef)}</AddressRef>`;
-  const destTag = p.destType === 'stop'
-    ? `<StopPointRef>${p.destRef}</StopPointRef><LocationName><Text/></LocationName>`
-    : `<AddressRef>${escXml(p.destRef)}</AddressRef>`;
+  const originInner = p.originType === 'stop'
+    ? `<trias:StopPointRef>${p.originRef}</trias:StopPointRef><trias:LocationName><trias:Text> </trias:Text></trias:LocationName>`
+    : `<trias:AddressRef>${escXml(p.originRef)}</trias:AddressRef><trias:LocationName><trias:Text>${escXml(p.originRef)}</trias:Text></trias:LocationName>`;
+  const destInner = p.destType === 'stop'
+    ? `<trias:StopPointRef>${p.destRef}</trias:StopPointRef><trias:LocationName><trias:Text> </trias:Text></trias:LocationName>`
+    : `<trias:AddressRef>${escXml(p.destRef)}</trias:AddressRef><trias:LocationName><trias:Text>${escXml(p.destRef)}</trias:Text></trias:LocationName>`;
 
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Trias version="1.2" xmlns="http://www.vdv.de/trias"
-  xmlns:ns2="http://www.siri.org.uk/siri"
-  xmlns:ns3="http://www.ifopt.org.uk/acsb"
-  xmlns:ns4="http://www.ifopt.org.uk/ifopt"
-  xmlns:ns5="http://datex2.eu/schema/1_0/1_0">
-  <ServiceRequest>
-    <ns2:RequestTimestamp>${new Date().toISOString()}</ns2:RequestTimestamp>
-    <ns2:RequestorRef>${REQUESTOR_REF}</ns2:RequestorRef>
-    <RequestPayload>
-      <TripRequest>
-        <Origin>
-          <LocationRef>${originTag}</LocationRef>
-          <DepArrTime>${p.depIso}</DepArrTime>
-        </Origin>
-        <Destination>
-          <LocationRef>${destTag}</LocationRef>
-        </Destination>
-        <Params>
-          <NumberOfResults>${p.results || 5}</NumberOfResults>
-          <AlgorithmType>${p.algorithm || 'minChanges'}</AlgorithmType>
-          <IncludeFares>true</IncludeFares>
-        </Params>
-      </TripRequest>
-    </RequestPayload>
-  </ServiceRequest>
-</Trias>`;
+<trias:Trias version="1.2"
+  xmlns:trias="http://www.vdv.de/trias"
+  xmlns:siri="http://www.siri.org.uk/siri">
+  <trias:ServiceRequest>
+    <siri:RequestTimestamp>${new Date().toISOString()}</siri:RequestTimestamp>
+    <siri:RequestorRef>${REQUESTOR_REF}</siri:RequestorRef>
+    <trias:RequestPayload>
+      <trias:TripRequest>
+        <trias:Origin>
+          <trias:LocationRef>
+            ${originInner}
+          </trias:LocationRef>
+          <trias:DepArrTime>${p.depIso}</trias:DepArrTime>
+        </trias:Origin>
+        <trias:Destination>
+          <trias:LocationRef>
+            ${destInner}
+          </trias:LocationRef>
+        </trias:Destination>
+        <trias:Params>
+          <trias:NumberOfResults>${p.results || 5}</trias:NumberOfResults>
+          <trias:AlgorithmType>${p.algorithm || 'minChanges'}</trias:AlgorithmType>
+          <trias:IncludeFares>true</trias:IncludeFares>
+        </trias:Params>
+      </trias:TripRequest>
+    </trias:RequestPayload>
+  </trias:ServiceRequest>
+</trias:Trias>`;
 }
 
-/**
- * Build Trias LocationInformationRequest XML for autocomplete
- */
 export function buildLocationRequest(text) {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Trias version="1.2" xmlns="http://www.vdv.de/trias"
-  xmlns:ns2="http://www.siri.org.uk/siri">
-  <ServiceRequest>
-    <ns2:RequestTimestamp>${new Date().toISOString()}</ns2:RequestTimestamp>
-    <ns2:RequestorRef>${REQUESTOR_REF}</ns2:RequestorRef>
-    <RequestPayload>
-      <LocationInformationRequest>
-        <InitialInput>
-          <LocationName>${escXml(text)}</LocationName>
-        </InitialInput>
-        <Restrictions>
-          <NumberOfResults>8</NumberOfResults>
-          <Type>stop</Type>
-        </Restrictions>
-      </LocationInformationRequest>
-    </RequestPayload>
-  </ServiceRequest>
-</Trias>`;
+<trias:Trias version="1.2"
+  xmlns:trias="http://www.vdv.de/trias"
+  xmlns:siri="http://www.siri.org.uk/siri">
+  <trias:ServiceRequest>
+    <siri:RequestTimestamp>${new Date().toISOString()}</siri:RequestTimestamp>
+    <siri:RequestorRef>${REQUESTOR_REF}</siri:RequestorRef>
+    <trias:RequestPayload>
+      <trias:LocationInformationRequest>
+        <trias:InitialInput>
+          <trias:LocationName>${escXml(text)}</trias:LocationName>
+        </trias:InitialInput>
+        <trias:Restrictions>
+          <trias:NumberOfResults>8</trias:NumberOfResults>
+        </trias:Restrictions>
+      </trias:LocationInformationRequest>
+    </trias:RequestPayload>
+  </trias:ServiceRequest>
+</trias:Trias>`;
 }
 
-/**
- * POST to Trias endpoint, returns raw XML string
- */
 export async function postTrias(xml) {
   const response = await fetch(TRIAS_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/xml; charset=UTF-8' },
     body: xml,
   });
-  if (!response.ok) throw new Error(`Trias HTTP ${response.status}`);
-  return response.text();
+  if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+  const text = await response.text();
+  // Check for Trias-level error
+  if (text.includes('<trias:ErrorMessage>') || text.includes('<ErrorMessage>')) {
+    const doc2 = new DOMParser().parseFromString(text, 'application/xml');
+    const errEl = doc2.getElementsByTagNameNS(NS, 'Text')[0];
+    throw new Error(errEl ? errEl.textContent : 'Trias API Fehler');
+  }
+  return text;
 }
 
-/**
- * Parse TripResponse XML → array of trip objects
- */
 export function parseTripResponse(xmlStr) {
   const doc = new DOMParser().parseFromString(xmlStr, 'application/xml');
-  const ns = 'http://www.vdv.de/trias';
   const trips = [];
 
-  doc.querySelectorAll('TripResult').forEach(result => {
+  const results = doc.getElementsByTagNameNS(NS, 'TripResult');
+  for (const result of results) {
     const trip = {
-      id: getText(result, 'ResultId', ns),
-      duration: getText(result, 'Duration', ns),
+      id: nsText(result, 'ResultId'),
+      duration: nsText(result, 'Duration'),
       legs: [],
     };
-    result.querySelectorAll('TripLeg').forEach(leg => {
-      const mode = getText(leg, 'PtMode', ns) || getText(leg, 'IndividualMode', ns) || '?';
-      const line = getText(leg, 'PublishedLineName', ns) || getText(leg, 'LineName', ns) || '';
-      const dest = getText(leg, 'DestinationText', ns) || getText(leg, 'DirectionRef', ns) || '';
-      const boardStop = leg.querySelector('LegBoard');
-      const alightStop = leg.querySelector('LegAlight');
 
-      const scheduledDep = getText(boardStop, 'TimetabledTime', ns);
-      const estimatedDep = getText(boardStop, 'EstimatedTime', ns);
-      const scheduledArr = getText(alightStop, 'TimetabledTime', ns);
-      const estimatedArr = getText(alightStop, 'EstimatedTime', ns);
+    const legEls = result.getElementsByTagNameNS(NS, 'TripLeg');
+    for (const leg of legEls) {
+      const timedLeg   = leg.getElementsByTagNameNS(NS, 'TimedLeg')[0];
+      const continuousLeg = leg.getElementsByTagNameNS(NS, 'ContinuousLeg')[0];
+      const interLeg   = leg.getElementsByTagNameNS(NS, 'InterchangeLeg')[0];
 
-      const fromName = getText(boardStop, 'Text', ns);
-      const toName   = getText(alightStop, 'Text', ns);
-      const platform = getText(boardStop, 'PlannedBay', ns) || getText(boardStop, 'EstimatedBay', ns) || '';
+      if (timedLeg) {
+        const board  = timedLeg.getElementsByTagNameNS(NS, 'LegBoard')[0];
+        const alight = timedLeg.getElementsByTagNameNS(NS, 'LegAlight')[0];
+        const service = timedLeg.getElementsByTagNameNS(NS, 'Service')[0];
 
-      const depDelay = calcDelayMin(scheduledDep, estimatedDep);
+        const line = nsText(service, 'PublishedLineName') || nsText(service, 'LineName') || '';
+        const dest = nsText(service, 'DestinationText') || nsText(service, 'DirectionRef') || '';
+        const mode = nsText(service, 'PtMode') || '';
+        const fromName = nsText(board,  'StopPointName') || nsText(board, 'Text') || '';
+        const toName   = nsText(alight, 'StopPointName') || nsText(alight, 'Text') || '';
 
-      trip.legs.push({ mode, line, dest, fromName, toName, platform, scheduledDep, estimatedDep, scheduledArr, estimatedArr, depDelay });
-    });
+        const scheduledDep = nsText(board,  'TimetabledTime');
+        const estimatedDep = nsText(board,  'EstimatedTime');
+        const scheduledArr = nsText(alight, 'TimetabledTime');
+        const estimatedArr = nsText(alight, 'EstimatedTime');
+        const platform    = nsText(board,  'PlannedBay') || nsText(board, 'EstimatedBay') || '';
+        const depDelay    = calcDelayMin(scheduledDep, estimatedDep);
+
+        trip.legs.push({ type: 'timed', mode, line, dest, fromName, toName, platform, scheduledDep, estimatedDep, scheduledArr, estimatedArr, depDelay });
+      } else if (continuousLeg || interLeg) {
+        const el = continuousLeg || interLeg;
+        const duration = nsText(el, 'Duration') || '';
+        trip.legs.push({ type: 'walk', mode: 'walk', line: '', dest: '', fromName: '', toName: '', duration, scheduledDep: '', depDelay: 0 });
+      }
+    }
 
     if (trip.legs.length > 0) {
-      const first = trip.legs[0];
+      const firstTimed = trip.legs.find(l => l.type === 'timed');
+      const lastTimed  = [...trip.legs].reverse().find(l => l.type === 'timed');
       trip.summary = {
-        line: first.line,
-        dest: first.dest,
-        from: first.fromName,
-        to: trip.legs[trip.legs.length - 1].toName,
-        depTime: first.estimatedDep || first.scheduledDep,
-        platform: first.platform,
-        depDelay: first.depDelay,
+        line:     firstTimed?.line     || '',
+        dest:     firstTimed?.dest     || '',
+        from:     firstTimed?.fromName || '',
+        to:       lastTimed?.toName    || '',
+        depTime:  firstTimed?.estimatedDep || firstTimed?.scheduledDep || '',
+        arrTime:  lastTimed?.estimatedArr  || lastTimed?.scheduledArr   || '',
+        platform: firstTimed?.platform || '',
+        depDelay: firstTimed?.depDelay || 0,
       };
     }
     trips.push(trip);
-  });
+  }
   return trips;
 }
 
-/**
- * Parse LocationInformationResponse → array of {name, ref, type}
- */
 export function parseLocationResponse(xmlStr) {
   const doc = new DOMParser().parseFromString(xmlStr, 'application/xml');
   const locations = [];
-  doc.querySelectorAll('Location').forEach(loc => {
-    const name = getText(loc, 'Text') || getText(loc, 'LocationName');
-    const ref  = getText(loc, 'StopPointRef') || getText(loc, 'AddressRef') || '';
-    const type = loc.querySelector('StopPointRef') ? 'stop' : 'address';
-    if (name) locations.push({ name, ref, type });
-  });
+  const locationEls = doc.getElementsByTagNameNS(NS, 'Location');
+  for (const loc of locationEls) {
+    const nameEl  = loc.getElementsByTagNameNS(NS, 'LocationName')[0];
+    const name    = nameEl ? nsText(nameEl, 'Text') : '';
+    const spRef   = loc.getElementsByTagNameNS(NS, 'StopPointRef')[0];
+    const adrRef  = loc.getElementsByTagNameNS(NS, 'AddressRef')[0];
+    const ref     = spRef?.textContent?.trim() || adrRef?.textContent?.trim() || '';
+    const type    = spRef ? 'stop' : 'address';
+    if (name && ref) locations.push({ name, ref, type });
+  }
   return locations;
 }
 
-// ---- Helpers ----
 export function calcDelayMin(scheduled, estimated) {
   if (!scheduled || !estimated) return 0;
-  const diff = (new Date(estimated) - new Date(scheduled)) / 60000;
-  return Math.round(diff);
+  return Math.round((new Date(estimated) - new Date(scheduled)) / 60000);
 }
 
-export function depInMin(depIso, delayMin = 0) {
-  const dep = new Date(depIso);
-  const now = new Date();
-  return Math.round((dep - now) / 60000) + delayMin;
+export function depInMin(depIso) {
+  if (!depIso) return 0;
+  return Math.round((new Date(depIso) - Date.now()) / 60000);
 }
 
-function getText(el, tag, ns) {
+function nsText(el, tag) {
   if (!el) return '';
-  const found = ns ? el.getElementsByTagNameNS(ns, tag)[0] : el.querySelector(tag);
+  const found = el.getElementsByTagNameNS(NS, tag)[0];
   return found ? found.textContent.trim() : '';
 }
 
 function escXml(s) {
-  return String(s)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;');
+  return String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 }
